@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Checker</title>
+    <link rel="manifest" href="#" id="manifest-placeholder">
+    <meta name="theme-color" content="#E0C3FC">
+    <meta name="description" content="Track your academic attendance with style">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'&gt;&lt;rect width='100' height='100' fill='%23E0C3FC'/&gt;&lt;text y='50' font-size='50' fill='white' text-anchor='middle' dominant-baseline='middle' x='50'&gt;ðŸ“š&lt;/text&gt;&lt;/svg&gt;">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%);
+            min-height: 100vh;
+            color: #4A4A4A;
+            overflow-x: hidden;
+        }
+
+        .dark-mode {
+            /* Dark mode kept as an alternative, though the main theme is light pastel */
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e0e0e0;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .dark-mode .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 45px rgba(0, 0, 0, 0.15);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #F6A89E, #C06C84);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .dark-mode .header h1 {
+            background: linear-gradient(45deg, #8b9dc3, #a882c4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.3);
+            color: #4A4A4A;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #F6A89E, #C06C84);
+            color: white;
+            border: none;
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #A8D8B9, #79C7A0);
+            color: white;
+            border: none;
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #F3B2B2, #E88D8D);
+            color: white;
+            border: none;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #6D6D6D;
+        }
+
+        .dark-mode .form-group label {
+            color: #ccc;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.875rem;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            color: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #F6A89E;
+            box-shadow: 0 0 0 3px rgba(246, 168, 158, 0.25);
+        }
+
+        /* Sign-up Page */
+        .signup-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .signup-card {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .signup-card h2 {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        /* Dashboard */
+        .dashboard {
+            display: none;
+        }
+
+        .dashboard.active {
+            display: block;
+        }
+
+        .semester-selector {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .semester-btn {
+            padding: 0.5rem 1rem;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 25px;
+            background: transparent;
+            color: inherit;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .semester-btn.active {
+            background: linear-gradient(45deg, #F6A89E, #C06C84);
+            color: white;
+            border-color: transparent;
+        }
+
+        .sections {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .section h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .subject-card {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .subject-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .subject-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .subject-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .attendance-percentage {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .percentage-good {
+            color: #50C878;
+        }
+
+        .percentage-warning {
+            color: #F8D5A3;
+        }
+
+        .percentage-danger {
+            color: #E57373;
+        }
+
+        /* Calendar View */
+        .calendar-view {
+            display: none;
+        }
+
+        .calendar-view.active {
+            display: block;
+        }
+        
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            min-height: 80px;
+        }
+
+        .calendar-day:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .calendar-day.other-month {
+            opacity: 0.4;
+        }
+
+        .calendar-day.today {
+            background: rgba(246, 168, 158, 0.3);
+        }
+
+        .day-number {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .day-sessions {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            width: 100%;
+            padding: 0 4px;
+        }
+
+        .session-dot {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .session-dot.attended {
+            background: #A8D8B9;
+        }
+
+        .session-dot.absent {
+            background: #F3B2B2;
+        }
+
+        .session-dot:hover {
+            transform: scale(1.1);
+        }
+
+        .calendar-legend {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .legend-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+        }
+
+        /* Settings */
+        .settings-view {
+            display: none;
+        }
+
+        .settings-view.active {
+            display: block;
+        }
+
+        .settings-group {
+            margin-bottom: 2rem;
+        }
+
+        .settings-group h3 {
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.3);
+            transition: 0.4s;
+            border-radius: 34px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background: linear-gradient(45deg, #F6A89E, #C06C84);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sections {
+                grid-template-columns: 1fr;
+            }
+            
+            .calendar-grid {
+                font-size: 0.9rem;
+            }
+            
+            .calendar-day {
+                min-height: 60px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: inherit;
+            opacity: 0.7;
+        }
+
+        .close-btn:hover {
+            opacity: 1;
+        }
+
+        /* Timetable */
+        .timetable-day {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .timetable-day label {
+            min-width: 100px;
+            margin-bottom: 0;
+        }
+
+        .timetable-day input {
+            width: 80px;
+        }
+
+        /* Navigation */
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-tab {
+            padding: 0.75rem 1.5rem;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 25px;
+            background: transparent;
+            color: inherit;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .nav-tab.active {
+            background: linear-gradient(45deg, #F6A89E, #C06C84);
+            color: white;
+            border-color: transparent;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sign-up Page -->
+    <div id="signupPage" class="signup-page">
+        <div class="signup-card glass-card fade-in">
+            <h2>Welcome to Attendance Checker</h2>
+            <form id="signupForm">
+                <div class="form-group">
+                    <label for="userName">Your Name</label>
+                    <input type="text" id="userName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="currentSemester">Current Semester</label>
+                    <select id="currentSemester" class="form-control" required>
+                        <option value="">Select Semester</option>
+                        <option value="1">Semester 1</option>
+                        <option value="2">Semester 2</option>
+                        <option value="3">Semester 3</option>
+                        <option value="4">Semester 4</option>
+                        <option value="5">Semester 5</option>
+                        <option value="6">Semester 6</option>
+                        <option value="7">Semester 7</option>
+                        <option value="8">Semester 8</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Get Started</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="dashboard" class="dashboard">
+        <div class="container">
+            <div class="header">
+                <h1>Attendance Checker</h1>
+                <div class="header-controls">
+                    <div class="nav-tabs">
+                        <button class="nav-tab active" onclick="showView('dashboard')">Dashboard</button>
+                        <button class="nav-tab" onclick="showView('settings')">Settings</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard View -->
+            <div id="dashboardView" class="dashboard-view active">
+                <div class="semester-selector">
+                    <div id="semesterButtons"></div>
+                    <button class="btn" onclick="addSemester()">+ Add Semester</button>
+                </div>
+                
+                <div class="sections">
+                    <div class="section">
+                        <h3>Theory Subjects</h3>
+                        <div id="theorySubjects"></div>
+                        <button class="btn btn-primary" onclick="addSubject('theory')">+ Add Theory Subject</button>
+                    </div>
+
+                    <div class="section">
+                        <h3>Lab Subjects</h3>
+                        <div id="labSubjects"></div>
+                        <button class="btn btn-primary" onclick="addSubject('lab')">+ Add Lab Subject</button>
+                    </div>
+                </div>
+
+                <div class="header-controls">
+                    <button class="btn btn-success" onclick="exportData('csv')">Export CSV</button>
+                    <button class="btn btn-success" onclick="exportData('pdf')">Export PDF</button>
+                </div>
+            </div>
+
+            <!-- Settings View -->
+            <div id="settingsView" class="settings-view">
+                <div class="glass-card">
+                    <h2>Settings</h2>
+                    
+                    <div class="settings-group">
+                        <h3>Appearance</h3>
+                        <div class="form-group">
+                            <label>
+                                <span>Dark Mode</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()">
+                                    <span class="slider"></span>
+                                </label>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <h3>Notifications</h3>
+                        <div class="form-group">
+                            <label for="attendanceThreshold">Low Attendance Threshold (%)</label>
+                            <input type="number" id="attendanceThreshold" class="form-control" min="0" max="100" value="75">
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <span>Weekly Reminders</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="weeklyReminders" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <h3>Data</h3>
+                        <button class="btn btn-danger" onclick="clearAllData()">Clear All Data</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calendar View -->
+            <div id="calendarView" class="calendar-view">
+                <div class="glass-card">
+                    <div class="calendar-header">
+                        <button class="btn" onclick="showView('dashboard')">&larr; Back to Dashboard</button>
+                        <h2 id="calendarTitle">Subject Calendar</h2>
+                        <div class="calendar-nav">
+                            <button class="btn" onclick="changeMonth(-1)">&larr; Prev</button>
+                            <span id="currentMonth">January 2025</span>
+                            <button class="btn" onclick="changeMonth(1)">Next &rarr;</button>
+                        </div>
+                    </div>
+
+                    <div class="calendar-legend">
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: #A8D8B9;"></div>
+                            <span>Attended</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: #F3B2B2;"></div>
+                            <span>Absent</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: rgba(255, 255, 255, 0.4);"></div>
+                            <span>Unmarked</span>
+                        </div>
+                    </div>
+
+                    <div class="calendar-grid" id="calendarGrid"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Subject Modal -->
+    <div id="addSubjectModal" class="modal">
+        <div class="modal-content glass-card">
+            <div class="modal-header">
+                <h3>Add New Subject</h3>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="addSubjectForm">
+                <div class="form-group">
+                    <label for="subjectName">Subject Name</label>
+                    <input type="text" id="subjectName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="subjectType">Subject Type</label>
+                    <select id="subjectType" class="form-control" required>
+                        <option value="">Select Type</option>
+                        <option value="theory">Theory</option>
+                        <option value="lab">Lab</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Weekly Schedule</label>
+                    <div class="timetable-day">
+                        <label>Monday:</label>
+                        <input type="number" id="mondaySessions" min="0" max="10" value="0" class="form-control">
+                        <span>sessions</span>
+                    </div>
+                    <div class="timetable-day">
+                        <label>Tuesday:</label>
+                        <input type="number" id="tuesdaySessions" min="0" max="10" value="0" class="form-control">
+                        <span>sessions</span>
+                    </div>
+                    <div class="timetable-day">
+                        <label>Wednesday:</label>
+                        <input type="number" id="wednesdaySessions" min="0" max="10" value="0" class="form-control">
+                        <span>sessions</span>
+                    </div>
+                    <div class="timetable-day">
+                        <label>Thursday:</label>
+                        <input type="number" id="thursdaySessions" min="0" max="10" value="0" class="form-control">
+                        <span>sessions</span>
+                    </div>
+                    <div class="timetable-day">
+                        <label>Friday:</label>
+                        <input type="number" id="fridaySessions" min="0" max="10" value="0" class="form-control">
+                        <span>sessions</span>
+                    </div>
+                    <div class="timetable-day">
+                        <label>Saturday:</label>
+                        <input type="number" id="saturdaySessions" min="0" max="10" value="0" class="form-control">
+                        <span>sessions</span>
+                    </div>
+                    <div class="timetable-day">
+                        <label>Sunday:</label>
+                        <input type="number" id="sundaySessions" min="0" max="10" value="0" class="form-control">
+                        <span>sessions</span>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Add Subject</button>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        // App State
+        let appState = {
+            user: null,
+            currentSemester: 1,
+            currentView: 'dashboard',
+            currentSubject: null,
+            currentMonth: new Date().getMonth(),
+            currentYear: new Date().getFullYear(),
+            semesters: {},
+            settings: {
+                darkMode: false,
+                attendanceThreshold: 75,
+                weeklyReminders: true
+            }
+        };
+
+        // Initialize App
+        function initApp() {
+            loadFromStorage();
+            if (appState.user) {
+                showDashboard();
+            } else {
+                showSignup();
+            }
+        }
+
+        // Local Storage Functions
+        function saveToStorage() {
+            localStorage.setItem('attendanceApp', JSON.stringify(appState));
+        }
+
+        function loadFromStorage() {
+            const stored = localStorage.getItem('attendanceApp');
+            if (stored) {
+                appState = { ...appState, ...JSON.parse(stored) };
+            }
+        }
+
+        // Sign-up Functions
+        function showSignup() {
+            document.getElementById('signupPage').style.display = 'flex';
+            document.getElementById('dashboard').style.display = 'none';
+        }
+
+        function showDashboard() {
+            document.getElementById('signupPage').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            updateDashboard();
+        }
+
+        document.getElementById('signupForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('userName').value;
+            const semester = parseInt(document.getElementById('currentSemester').value);
+            
+            appState.user = name;
+            appState.currentSemester = semester;
+            appState.semesters[semester] = { theory: {}, lab: {} };
+            
+            saveToStorage();
+            showDashboard();
+        });
+
+        // View Navigation
+        function showView(view) {
+            // Hide all views
+            document.querySelectorAll('.dashboard-view, .settings-view, .calendar-view').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Show selected view
+            if (view === 'dashboard') {
+                document.getElementById('dashboardView').classList.add('active');
+            } else if (view === 'settings') {
+                document.getElementById('settingsView').classList.add('active');
+            } else if (view === 'calendar') {
+                document.getElementById('calendarView').classList.add('active');
+            }
+            
+            // Update nav tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            if (view !== 'calendar') {
+                document.querySelector(`[onclick="showView('${view}')"]`).classList.add('active');
+            }
+            
+            appState.currentView = view;
+        }
+
+        // Dashboard Functions
+        function updateDashboard() {
+            updateSemesterButtons();
+            updateSubjects();
+            updateSettingsUI();
+        }
+
+        function updateSemesterButtons() {
+            const container = document.getElementById('semesterButtons');
+            container.innerHTML = '';
+            
+            Object.keys(appState.semesters).sort((a,b) => a-b).forEach(semester => {
+                const btn = document.createElement('button');
+                btn.className = `semester-btn ${semester == appState.currentSemester ? 'active' : ''}`;
+                btn.textContent = `Semester ${semester}`;
+                btn.onclick = () => switchSemester(parseInt(semester));
+                container.appendChild(btn);
+            });
+        }
+
+        function switchSemester(semester) {
+            appState.currentSemester = semester;
+            saveToStorage();
+            updateDashboard();
+        }
+
+        function addSemester() {
+            const semester = prompt('Enter semester number (1-8):');
+            if (semester && !isNaN(semester) && semester >= 1 && semester <= 8) {
+                const semesterNum = parseInt(semester);
+                if (!appState.semesters[semesterNum]) {
+                    appState.semesters[semesterNum] = { theory: {}, lab: {} };
+                    saveToStorage();
+                    switchSemester(semesterNum);
+                }
+            }
+        }
+
+        // Subject Functions
+        function updateSubjects() {
+            const currentSemesterData = appState.semesters[appState.currentSemester];
+            if (!currentSemesterData) return;
+
+            updateSubjectSection('theory', currentSemesterData.theory);
+            updateSubjectSection('lab', currentSemesterData.lab);
+        }
+
+        function updateSubjectSection(type, subjects) {
+            const container = document.getElementById(`${type}Subjects`);
+            container.innerHTML = '';
+
+            Object.keys(subjects).forEach(subjectName => {
+                const subject = subjects[subjectName];
+                const stats = calculateAttendanceStats(subject);
+                
+                const card = document.createElement('div');
+                card.className = 'subject-card';
+                card.onclick = () => openSubjectCalendar(subjectName, type);
+                
+                const percentage = stats.total > 0 ? Math.round((stats.attended / stats.total) * 100) : 0;
+                let percentageClass = 'percentage-good';
+                if (percentage < appState.settings.attendanceThreshold) {
+                    percentageClass = 'percentage-danger';
+                } else if (percentage < appState.settings.attendanceThreshold + 10) {
+                    percentageClass = 'percentage-warning';
+                }
+                
+                card.innerHTML = `
+                    <div class="subject-name">${subjectName}</div>
+                    <div class="subject-stats">
+                        <span>${stats.attended}/${stats.total} sessions</span>
+                        <span class="attendance-percentage ${percentageClass}">${percentage}%</span>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+
+        function calculateAttendanceStats(subject) {
+            let attended = 0;
+            let total = 0;
+            
+            if (subject.attendance) {
+                Object.values(subject.attendance).forEach(dayData => {
+                    if (Array.isArray(dayData)) {
+                        dayData.forEach(session => {
+                            total++;
+                            if (session === 'attended') attended++;
+                        });
+                    }
+                });
+            }
+            
+            return { attended, total };
+        }
+
+        function addSubject(type) {
+            document.getElementById('subjectType').value = type;
+            document.getElementById('addSubjectModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('addSubjectModal').classList.remove('active');
+            document.getElementById('addSubjectForm').reset();
+        }
+
+        document.getElementById('addSubjectForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('subjectName').value;
+            const type = document.getElementById('subjectType').value;
+            
+            const schedule = {
+                monday: parseInt(document.getElementById('mondaySessions').value),
+                tuesday: parseInt(document.getElementById('tuesdaySessions').value),
+                wednesday: parseInt(document.getElementById('wednesdaySessions').value),
+                thursday: parseInt(document.getElementById('thursdaySessions').value),
+                friday: parseInt(document.getElementById('fridaySessions').value),
+                saturday: parseInt(document.getElementById('saturdaySessions').value),
+                sunday: parseInt(document.getElementById('sundaySessions').value)
+            };
+            
+            if (!appState.semesters[appState.currentSemester]) {
+                appState.semesters[appState.currentSemester] = { theory: {}, lab: {} };
+            }
+            
+            appState.semesters[appState.currentSemester][type][name] = {
+                schedule: schedule,
+                attendance: {}
+            };
+            
+            saveToStorage();
+            updateDashboard();
+            closeModal();
+        });
+        
+        // Calendar Functions
+        function openSubjectCalendar(subjectName, type) {
+            appState.currentSubject = { name: subjectName, type: type };
+            document.getElementById('calendarTitle').textContent = `${subjectName} - Calendar`;
+            showView('calendar');
+            updateCalendar();
+        }
+
+        function updateCalendar() {
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'];
+            
+            document.getElementById('currentMonth').textContent = 
+                `${monthNames[appState.currentMonth]} ${appState.currentYear}`;
+            
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+            
+            // Add day headers
+            const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            dayHeaders.forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'calendar-day';
+                header.style.fontWeight = 'bold';
+                header.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+                header.textContent = day;
+                grid.appendChild(header);
+            });
+            
+            const firstDay = new Date(appState.currentYear, appState.currentMonth, 1);
+            const lastDay = new Date(appState.currentYear, appState.currentMonth + 1, 0);
+            const startDate = new Date(firstDay);
+            startDate.setDate(startDate.getDate() - firstDay.getDay());
+            
+            const subject = getCurrentSubject();
+            if (!subject) return;
+            
+            for (let i = 0; i < 42; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+                
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+                
+                if (date.getMonth() !== appState.currentMonth) {
+                    dayElement.classList.add('other-month');
+                }
+                
+                const today = new Date();
+                if (date.toDateString() === today.toDateString()) {
+                    dayElement.classList.add('today');
+                }
+                
+                const dayNumber = document.createElement('div');
+                dayNumber.className = 'day-number';
+                dayNumber.textContent = date.getDate();
+                dayElement.appendChild(dayNumber);
+                
+                const sessionsContainer = document.createElement('div');
+                sessionsContainer.className = 'day-sessions';
+                
+                const dayName = date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+                const sessionsCount = subject.schedule[dayName] || 0;
+                
+                for (let j = 0; j < sessionsCount; j++) {
+                    const sessionDot = document.createElement('div');
+                    sessionDot.className = 'session-dot';
+                    
+                    const dateKey = date.toISOString().split('T')[0];
+                    const sessionStatus = getSessionStatus(dateKey, j);
+                    
+                    if (sessionStatus === 'attended') {
+                        sessionDot.classList.add('attended');
+                    } else if (sessionStatus === 'absent') {
+                        sessionDot.classList.add('absent');
+                    }
+                    
+                    sessionDot.onclick = (e) => {
+                        e.stopPropagation();
+                        toggleSession(dateKey, j);
+                    };
+                    
+                    sessionsContainer.appendChild(sessionDot);
+                }
+                
+                dayElement.appendChild(sessionsContainer);
+                grid.appendChild(dayElement);
+            }
+        }
+        
+        function getCurrentSubject() {
+            if (!appState.currentSubject) return null;
+            
+            const semester = appState.semesters[appState.currentSemester];
+            if (!semester) return null;
+            
+            return semester[appState.currentSubject.type][appState.currentSubject.name];
+        }
+
+        function getSessionStatus(dateKey, sessionIndex) {
+            const subject = getCurrentSubject();
+            if (!subject || !subject.attendance || !subject.attendance[dateKey]) {
+                return 'unmarked';
+            }
+            
+            const dayAttendance = subject.attendance[dateKey];
+            return dayAttendance[sessionIndex] || 'unmarked';
+        }
+
+        function toggleSession(dateKey, sessionIndex) {
+            const subject = getCurrentSubject();
+            if (!subject) return;
+            
+            if (!subject.attendance) {
+                subject.attendance = {};
+            }
+            
+            if (!subject.attendance[dateKey]) {
+                subject.attendance[dateKey] = [];
+            }
+            
+            const current = subject.attendance[dateKey][sessionIndex] || 'unmarked';
+            let next;
+            
+            if (current === 'unmarked') {
+                next = 'attended';
+            } else if (current === 'attended') {
+                next = 'absent';
+            } else {
+                next = 'unmarked';
+            }
+            
+            subject.attendance[dateKey][sessionIndex] = next;
+            
+            saveToStorage();
+            renderCalendar();
+            updateSubjects(); // Update dashboard stats after calendar change
+        }
+
+        function changeMonth(direction) {
+            appState.currentMonth += direction;
+            
+            if (appState.currentMonth < 0) {
+                appState.currentMonth = 11;
+                appState.currentYear--;
+            } else if (appState.currentMonth > 11) {
+                appState.currentMonth = 0;
+                appState.currentYear++;
+            }
+            
+            updateCalendar();
+        }
+
+        // Settings Functions
+        function updateSettingsUI() {
+            document.getElementById('darkModeToggle').checked = appState.settings.darkMode;
+            document.getElementById('attendanceThreshold').value = appState.settings.attendanceThreshold;
+            document.getElementById('weeklyReminders').checked = appState.settings.weeklyReminders;
+            
+            if (appState.settings.darkMode) {
+                document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
+            }
+        }
+
+        function toggleDarkMode() {
+            appState.settings.darkMode = document.getElementById('darkModeToggle').checked;
+            saveToStorage();
+            updateSettingsUI();
+        }
+
+        document.getElementById('attendanceThreshold').addEventListener('change', function() {
+            appState.settings.attendanceThreshold = parseInt(this.value);
+            saveToStorage();
+            updateDashboard();
+        });
+
+        document.getElementById('weeklyReminders').addEventListener('change', function() {
+            appState.settings.weeklyReminders = this.checked;
+            saveToStorage();
+        });
+
+        function clearAllData() {
+            if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
+                localStorage.removeItem('attendanceApp');
+                location.reload();
+            }
+        }
+
+        // Export Functions
+        function exportData(format) {
+            const data = prepareExportData();
+            
+            if (format === 'csv') {
+                exportCSV(data);
+            } else if (format === 'pdf') {
+                exportPDF(data);
+            }
+        }
+
+        function prepareExportData() {
+            const semester = appState.semesters[appState.currentSemester];
+            const data = [];
+            
+            ['theory', 'lab'].forEach(type => {
+                Object.keys(semester[type]).forEach(subjectName => {
+                    const subject = semester[type][subjectName];
+                    const stats = calculateAttendanceStats(subject);
+                    const percentage = stats.total > 0 ? Math.round((stats.attended / stats.total) * 100) : 0;
+                    
+                    data.push({
+                        semester: appState.currentSemester,
+                        type: type.charAt(0).toUpperCase() + type.slice(1),
+                        subject: subjectName,
+                        attended: stats.attended,
+                        total: stats.total,
+                        percentage: percentage
+                    });
+                });
+            });
+            
+            return data;
+        }
+
+        function exportCSV(data) {
+            const headers = ['Semester', 'Type', 'Subject', 'Attended', 'Total', 'Percentage'];
+            const csvContent = [
+                headers.join(','),
+                ...data.map(row => [
+                    row.semester,
+                    row.type,
+                    `"${row.subject.replace(/"/g, '""')}"`, // Handle quotes in subject names
+                    row.attended,
+                    row.total,
+                    row.percentage + '%'
+                ].join(','))
+            ].join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `attendance_semester_${appState.currentSemester}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function exportPDF(data) {
+            // Simple PDF export - in a real app, you'd use a library like jsPDF
+            const content = [
+                `Attendance Report - Semester ${appState.currentSemester}`,
+                `Generated on: ${new Date().toLocaleDateString()}`,
+                '',
+                'Subject Details:',
+                ...data.map(row => 
+                    `${row.type}: ${row.subject} - ${row.attended}/${row.total} (${row.percentage}%)`
+                )
+            ].join('\n');
+            
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `attendance_semester_${appState.currentSemester}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Notifications (simplified for demo)
+        function checkLowAttendance() {
+            const semester = appState.semesters[appState.currentSemester];
+            if (!semester) return;
+            const lowAttendanceSubjects = [];
+            
+            ['theory', 'lab'].forEach(type => {
+                Object.keys(semester[type]).forEach(subjectName => {
+                    const subject = semester[type][subjectName];
+                    const stats = calculateAttendanceStats(subject);
+                    const percentage = stats.total > 0 ? Math.round((stats.attended / stats.total) * 100) : 0;
+                    
+                    if (percentage < appState.settings.attendanceThreshold) {
+                        lowAttendanceSubjects.push({
+                            name: subjectName,
+                            type: type,
+                            percentage: percentage
+                        });
+                    }
+                });
+            });
+            
+            if (lowAttendanceSubjects.length > 0 && appState.settings.weeklyReminders) {
+                // In a real app, this would trigger actual notifications
+                console.log('Low attendance alert:', lowAttendanceSubjects);
+            }
+        }
+
+        // Service Worker Registration (PWA)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('data:text/javascript;base64,' + btoa(`
+                const CACHE_NAME = 'attendance-checker-v1';
+                const urlsToCache = ['/'];
+                
+                self.addEventListener('install', event => {
+                    event.waitUntil(
+                        caches.open(CACHE_NAME)
+                            .then(cache => cache.addAll(urlsToCache))
+                    );
+                });
+                
+                self.addEventListener('fetch', event => {
+                    event.respondWith(
+                        caches.match(event.request)
+                            .then(response => response || fetch(event.request))
+                    );
+                });
+            `)).catch(error => {
+                console.log('Service worker registration failed:', error);
+            });
+        }
+
+        // Web App Manifest
+        const manifest = {
+            name: 'Attendance Checker',
+            short_name: 'Attendance',
+            description: 'Track your academic attendance with style',
+            start_url: '/',
+            display: 'standalone',
+            background_color: '#E0C3FC',
+            theme_color: '#E0C3FC',
+            icons: [
+                {
+                    src: 'data:image/svg+xml,&lt;svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"&gt;&lt;rect width="100" height="100" fill="%23E0C3FC"/&gt;&lt;text y="50" font-size="50" fill="white" text-anchor="middle" dominant-baseline="middle" x="50"&gt;ðŸ“š&lt;/text&gt;&lt;/svg&gt;',
+                    sizes: '192x192',
+                    type: 'image/svg+xml'
+                }
+            ]
+        };
+
+        const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+        const manifestURL = URL.createObjectURL(manifestBlob);
+        document.getElementById('manifest-placeholder').href = manifestURL;
+
+        // Initialize app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initApp);
+
+        // Weekly notification check
+        setInterval(() => {
+            if (appState.settings.weeklyReminders) {
+                checkLowAttendance();
+            }
+        }, 7 * 24 * 60 * 60 * 1000); // Weekly
+    </script>
+</body>
+</html>
