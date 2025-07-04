@@ -1,0 +1,21 @@
+{
+    "name": "Attendance Checker",
+    "short_name": "Attendance",
+    "description": "Track your academic attendance with style",
+    "start_url": "/attendance-app/",
+    "display": "standalone",
+    "background_color": "#E0C3FC",
+    "theme_color": "#E0C3FC",
+    "icons": [
+        {
+            "src": "https://via.placeholder.com/192x192.png?text=📚",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "https://via.placeholder.com/512x512.png?text=📚",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
